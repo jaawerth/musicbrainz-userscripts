@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Import Qobuz releases to MusicBrainz
 // @description  Add a button on Qobuz's album pages to open MusicBrainz release editor with pre-filled data for the selected release
-// @version      2026.03.09.0
+// @version      2026.03.09.1
 // @namespace    https://github.com/murdos/musicbrainz-userscripts
 // @downloadURL  https://raw.github.com/murdos/musicbrainz-userscripts/master/qobuz_importer.user.js
 // @updateURL    https://raw.github.com/murdos/musicbrainz-userscripts/master/qobuz_importer.user.js
@@ -322,7 +322,7 @@ async function extractAlbumData() {
     if (!sku) return;
     const url = new URL('https://www.qobuz.com/api.json/0.2/album/get');
     url.searchParams.set('album_id', sku);
-    const res = await fetch(url, { headers: { 'X-App-Id': '712109809', Accept: 'application/json' } });
+    const res = await fetch(url, { headers: { 'X-App-Id': '712109809', Accept: 'application/json', mode: 'no-cors' } });
     if (!res.ok) {
         console.error('Qobuz API request failed', sku, res.status, res.statusText);
         return Promise.reject({ message: 'Qobuz API request failed', code: res.status });
