@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Import Qobuz releases to MusicBrainz
 // @description  Add a button on Qobuz's album pages to open MusicBrainz release editor with pre-filled data for the selected release
-// @version      2026.03.05.4
+// @version      2026.03.09.0
 // @namespace    https://github.com/murdos/musicbrainz-userscripts
 // @downloadURL  https://raw.github.com/murdos/musicbrainz-userscripts/master/qobuz_importer.user.js
 // @updateURL    https://raw.github.com/murdos/musicbrainz-userscripts/master/qobuz_importer.user.js
@@ -263,13 +263,13 @@ function insertLink(release) {
     }
 
     mbUI.append($('<button id="isrcs" type="submit" title="Show list of ISRCs">Show ISRCs</button>'));
-    if (release.upc) {
+    if (release.barcode) {
         const [harmonyURL, atisketURL] = ['https://harmony.pulsewidth.org.uk/release', 'https://atisket.pulsewidth.org.uk/?upc=${upc}'].map(
             base => new URL(base),
         );
-        harmonyURL.searchParams.set('gtin', release.upc).set('category', 'default');
-        atisketURL.searchParams.set('upc', release.upc);
-        mbUI.append(`<div id="mbimport_upc" style="margin-bottom: 2em; font-size: smaller;">UPC: ${release.upc}<br>
+        harmonyURL.searchParams.set('gtin', release.barcode).set('category', 'default');
+        atisketURL.searchParams.set('upc', release.barcode);
+        mbUI.append(`<div id="mbimport_upc" style="margin-bottom: 2em; font-size: smaller;">UPC: ${release.barcode}<br>
         <a href="${harmonyURL}">Harmony</a>
         <a href="${atisketURL}">a-tisket</a>`);
     }
