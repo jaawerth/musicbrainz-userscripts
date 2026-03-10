@@ -263,6 +263,16 @@ function insertLink(release) {
     }
 
     mbUI.append($('<button id="isrcs" type="submit" title="Show list of ISRCs">Show ISRCs</button>'));
+    if (release.upc) {
+        const [harmonyURL, atisketURL] = ['https://harmony.pulsewidth.org.uk/release', 'https://atisket.pulsewidth.org.uk/?upc=${upc}'].map(
+            base => new URL(base),
+        );
+        harmonyURL.searchParams.set('gtin', release.upc).set('category', 'default');
+        atisketURL.searchParams.set('upc', release.upc);
+        mbUI.append(`<div id="mbimport_upc" style="margin-bottom: 2em; font-size: smaller;">UPC: ${release.upc}<br>
+        <a href="${harmonyURL}">Harmony</a>
+        <a href="${atisketURL}">a-tisket</a>`);
+    }
     mbUI.css({
         marginBottom: '5px',
         display: 'flex',
@@ -306,35 +316,18 @@ function insertLink(release) {
     mbUI.slideDown();
 }
 
-function extractAlbumData() {
-    return new Promise((resolve, reject) => {
-        const script_elements = document.querySelectorAll('script[type="application/ld+json"]');
-        for (const script of script_elements) {
-            const json_data = JSON.parse(script.textContent);
-            if (json_data['@type'] === 'Product' && json_data.sku) {
-                let sku = json_data.sku;
-                // Use the Qobuz API to get the album data for the SKU
-                const req = new XMLHttpRequest();
-                req.open('GET', `https://www.qobuz.com/api.json/0.2/album/get?album_id=${sku}`, true);
-                req.setRequestHeader('X-App-Id', '712109809');
-                req.onreadystatechange = function () {
-                    if (req.readyState === 4) {
-                        if (req.status === 200) {
-                            const raw_release_data = JSON.parse(req.responseText);
-                            resolve(raw_release_data);
-                        } else {
-                            console.error('Qobuz API request failed', sku, req.status, req.statusText);
-                            reject({ message: 'Qobuz API request failed', code: req.status });
-                        }
-                    }
-                };
-                req.onerror = function () {
-                    reject({ message: 'Qobuz API request network error', code: '?' });
-                };
-                req.send();
-            }
-        }
-    });
+async function extractAlbumData() {
+    const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'), script => JSON.parse(script.textContent));
+    const { sku } = scripts.find(json_data => json_data['@type'] === 'Product' && json_data.sku) || {};
+    if (!sku) return;
+    const url = new URL('https://www.qobuz.com/api.json/0.2/album/get');
+    url.searchParams.set('album_id', sku);
+    const res = await fetch(url, { headers: { 'X-App-Id': '712109809', Accept: 'application/json' } });
+    if (!res.ok) {
+        console.error('Qobuz API request failed', sku, res.status, res.statusText);
+        return Promise.reject({ message: 'Qobuz API request failed', code: res.status });
+    }
+    return res.json();
 }
 
 /**
